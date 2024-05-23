@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <style>
+        .background {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: rgba(14, 14, 14, 1);
+            overflow: hidden;
+        }
+
+        .box-container {
+            display: flex;
+            justify-content: space-between;
+            width: 50%;
+            height: 30%;
+        }
+
+        .box {
+            flex: 1;
+            margin: 10px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 1);
+        }
+
+        .search-box {
+            margin-right: 10px;
+        }
+
+        .form-text {
+            margin-left: 10%;
+        }
+
+        .search-bar {
+            margin-left: 10%;
+            padding: 3%;
+            border: 1px solid black; /* Add border */
+            border-radius: 5px; /* Optional: Add border-radius for rounded corners */
+        }
+        .search-button {
+            margin-top: 10px; 
+            display: block; 
+            margin-left: 30%; 
+            padding: 3%;
+        }
+        .result-box {
+            margin-left: 10px;
+        }
+        .title-text {
+            color: white;
+            font-size: 40px;
+            position: absolute;
+            top: 12%; /* Adjust as needed */
+            left: 52%;
+            transform: translateX(-50%);
+        }
+        .title-sub-text{
+            color: white;
+            font-size: 20px;
+            position: absolute;
+            top: 20%; /* Adjust as needed */
+            left: 53%;
+            transform: translateX(-50%)
+        }
+        .result-text {
+            color: black;
+            font-size: 16px;
+            margin-bottom: 5px; /* Adjusted margin */
+            margin-top: -40px; /* Negative margin to move the text higher */
+        }
+        .flag {
+            max-width: 100%; /* Ensure the image does not exceed the container's width */
+            max-height: 100%; /* Ensure the image does not exceed the container's height */
+            width: auto; /* Automatically adjust the width to fit within the container */
+            height: 40%; /* Automatically adjust the height to fit within the container */
+            margin-left: 20%;
+            margin-bottom: 10%;
+            background-size: contain; /* Ensure the entire image is visible within the container */
+            background-repeat: no-repeat; /* Prevent the image from repeating */
+        }
+        .flag img {
+            width: 60%; /* Set the width to 100 pixels */
+            height: 100%; /* Maintain aspect ratio */
+        }
+        .logo{
+            top:5%;
+            left: 40%;
+            width:100px;
+            height: auto;
+        }
+        .lang-change {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+
+    </style>
+</head>
+<body>
+<div class="background">
+    <div class="logo">
+        <img src ="https://upload.wikimedia.org/wikipedia/commons/thumb/d/da/Coat_of_arms_of_Germany.svg/800px-Coat_of_arms_of_Germany.svg.png" alt="website logo">
+    </div>
+    <button class="lang-change" @click="langChange()">{{pageText.current_lang}}</button>
+    <h1 class="title-text" lang ="en">{{pageText.title}}</h1>
+    <h2 class = "title-sub-text" lang ="en">{{pageText.title_sub_text}}</h2>
+    <div id = "app" class="box-container">
+        <div class="box search-box">
+            <form @submit.prevent="submitHandler()" class="form-box">
+                <p class="form-text" lang ="en">{{pageText.entry_text}}</p>
+                <input  placeholder="N-OM-2004" class="search-bar" type="text" v-model="numberplate">
+                <button lang ="en" class="search-button" type="submit">{{pageText.search_button}}</button>
+            </form>
+        </div>
+        <div class="box result-box">
+            <div v-if="notFound === true" class="error-message" lang ="en">
+                <p>{{pageText.Error_Message1}}</p>
+                <p>{{pageText.Error_Message2}}</p>
+            </div>
+            <p v-if="rendering === true" lang ="en">{{pageText.Result_city}}<span class="result-text">{{ searchResult.city }}</span></p>
+            <p v-if="rendering === true" lang ="en">{{pageText.Result_state}}<span class = "result-text">{{searchResult.state}}</span></p>
+            <div v-if="rendering===true"class="flag">
+                <img v-if="searchResult.state === 'Bayern'" src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/20/Flag_of_Bavaria_%28lozengy%29.svg/800px-Flag_of_Bavaria_%28lozengy%29.svg.png" alt="Flag of Bayern">
+                <img v-if="searchResult.state === 'Baden-Württemberg'" src="https://upload.wikimedia.org/wikipedia/commons/4/41/Flag_of_Baden-Württemberg_%28state%2C_lesser_arms%29.svg" alt="Flag of Baden-Württemberg">
+                <img v-if="searchResult.state === 'Berlin'" src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/Flag_of_Berlin.svg/1280px-Flag_of_Berlin.svg.png" alt="Flag of Berlin">
+                <img v-if="searchResult.state === 'Hamburg'" src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/74/Flag_of_Hamburg.svg/800px-Flag_of_Hamburg.svg.png" alt="Flag of Hamburg">
+                <img v-if="searchResult.state === 'Brandenburg'" src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/01/Flag_of_Brandenburg.svg/800px-Flag_of_Brandenburg.svg.png" alt="Flag of Brandenburg">
+                <img v-if="searchResult.state === 'Bremen'" src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5a/State_flag_of_Bremen.svg/2560px-State_flag_of_Bremen.svg.png" alt="Flag of Bremen">
+                <img v-if="searchResult.state === 'Hessen'" src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/Flag_of_Hesse_%28state%29.svg/1200px-Flag_of_Hesse_%28state%29.svg.png" alt="Flag of Hesse">
+                <img v-if="searchResult.state === 'Mecklenburg-Vorpommern'" src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/68/Flag_of_Mecklenburg-Western_Pomerania_%28state%29.svg/2560px-Flag_of_Mecklenburg-Western_Pomerania_%28state%29.svg.png" alt="Flag of Mecklenburg-Vorpommern">
+                <img v-if="searchResult.state === 'Niedersachsen'" src="https://upload.wikimedia.org/wikipedia/commons/8/81/Flag_of_Lower_Saxony.svg" alt="Flag of Lower Saxony">
+                <img v-if="searchResult.state === 'Nordrhein-Westfalen'" src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/fd/Flag_of_North_Rhine-Westphalia_%28state%29.svg/2560px-Flag_of_North_Rhine-Westphalia_%28state%29.svg.png" alt="Flag of North Rhine-Westphalia">
+                <img v-if="searchResult.state === 'Rhineland-Palatinate'" src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b7/Flag_of_Rhineland-Palatinate.svg/800px-Flag_of_Rhineland-Palatinate.svg.png" alt="Flag of Rhineland Palatinate">
+                <img v-if="searchResult.state === 'Saarland'" src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Flag_of_Saarland.svg/1200px-Flag_of_Saarland.svg.png" alt="Flag of Saarland">
+                <img v-if="searchResult.state === 'Sachsen'" src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f2/Flagge_des_sächsischen_Landtages.svg/300px-Flagge_des_sächsischen_Landtages.svg.png" alt="Flag of Saxony">
+                <img v-if="searchResult.state === 'Saxony-Anhalt'" src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/Flag_of_Saxony-Anhalt_%28state%29.svg/800px-Flag_of_Saxony-Anhalt_%28state%29.svg.png" alt="Flag of Saxony-Anhalt">
+                <img v-if="searchResult.state === 'Schleswig-Holstein'" src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c8/Flag_of_Schleswig-Holstein_%28state%29.svg/2560px-Flag_of_Schleswig-Holstein_%28state%29.svg.png" alt="Flag of Schleswig-Holstein">
+                <img v-if="searchResult.state === 'Thuringia'" src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/bd/Flag_of_Thuringia_%28state%29.svg/2560px-Flag_of_Thuringia_%28state%29.svg.png" alt="Flag of Thuringa">
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let app = Vue.createApp({
+        data() {
+            return {
+                initials: '',
+                numberplate: '',
+                rendering: false,
+                loading: false,
+                isGerman : false,
+                searchResult: {
+                    city: '',
+                    state: ''
+                },
+                notFound : false,
+                pageText:{
+                    entry_text:"Enter the numberplate:",
+                    search_button: "Search",
+                    current_lang: 'de',
+                    title: 'German',
+                    title_sub_text: 'Numberplate Identification tool',
+                    Error_Message1:"Error: City not found",
+                    Error_Message2:"Make sure you entered the numberplate in the right sequence and right format",
+                    Result_city: "City: ",
+                    Result_state: "State: "
+                } 
+            }
+        },
+        methods: {
+            langChange(){
+                this.isGerman = true;
+                if(this.isGerman){
+                    this.current_lang = "en";
+                    this.pageText.title = 'Deutsches';
+                    this.pageText.title_sub_text = "Nummernschild-Identifikationswerkzeug";
+                    this.pageText.entry_text="Eingabe des Nummernschildes:";
+                    this.pageText.search_button= "Suche";
+                    this.pageText.Error_Message1="Fehler: Stadt nicht gefunden",
+                    this.pageText.Error_Message2="Stellen Sie sicher, dass Sie das Nummernschild in der richtigen Reihenfolge und im richtigen Format eingegeben haben",
+                    this.pageText.Result_city= "Stadt: ",
+                    this.pageText.Result_state= "Staat: "
+
+                }
+            },
+            retrieve_initials(){
+                let numberplate = this.numberplate
+                numberplate = numberplate.toUpperCase();
+                var npParts = numberplate.split("-");
+                this.initials = npParts[0];
+            },
+            search() {
+                // Set loading to true while fetching data
+                this.loading = true;
+
+                // Send GET request to server's /search endpoint with initials as query parameter
+                fetch(`/search?initial=${this.initials}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            this.notFound = true;
+                            this.rendering = false;
+
+                            throw new Error('Network response was not ok');
+                            
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        // Update search result with received data
+                        this.rendering = true;
+                        this.notFound = false;
+                        this.searchResult.city = data.city;
+                        this.searchResult.state = data.state;
+                        console.log("Search complete");
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                    })
+                    .finally(() => {
+                        // Set loading back to false after fetching data
+                        this.loading = false;
+                    });
+            },
+            submitHandler(){
+                this.retrieve_initials();
+                this.search();   
+            }
+        }
+    });
+    app.mount(".background"); // Mounting the Vue app to the parent element
+    function hi(){
+        console.log("hello");
+    }
+</script>
+</body>
+</html>
